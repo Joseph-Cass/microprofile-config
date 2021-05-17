@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Contributors to the Eclipse Foundation
+ * Copyright (c) 2016-2021 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -26,6 +26,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.time.Duration;
 import java.time.Instant;
@@ -714,9 +715,10 @@ public class ConverterTest extends Arquillian {
     }
 
     @Test
-    public void testURLConverter() throws MalformedURLException {
+    public void testURLConverter() throws MalformedURLException, URISyntaxException {
         URL url = config.getValue("tck.config.test.javaconfig.converter.urlvalue", URL.class);
-        Assert.assertEquals(url, new URL("http://microprofile.io"));
+        // See https://github.com/eclipse/microprofile-config/issues/549 for why URLs are cast to URIs
+        Assert.assertEquals(url.toURI(), (new URL("http://microprofile.io")).toURI());
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
@@ -725,9 +727,10 @@ public class ConverterTest extends Arquillian {
     }
 
     @Test
-    public void testGetURLConverter() throws MalformedURLException {
+    public void testGetURLConverter() throws MalformedURLException, URISyntaxException {
         URL url = config.getConverter(URL.class).get().convert("http://microprofile.io");
-        Assert.assertEquals(url, new URL("http://microprofile.io"));
+        // See https://github.com/eclipse/microprofile-config/issues/549 for why URLs are cast to URIs
+        Assert.assertEquals(url.toURI(), (new URL("http://microprofile.io")).toURI());
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)

@@ -1719,21 +1719,11 @@ public class ArrayConverterTest extends Arquillian {
 
     /////////////////////////////////// Test URL[] //////////////////////////
 
-    private void assertURLArrayEquals(URL[] value, URL[] expectedValue) throws MalformedURLException {
-        assertURLListEquals(Arrays.asList(value), Arrays.asList(expectedValue));
-    }
-
-    private void assertURLListEquals(List<URL> value, List<URL> expectedValue) throws MalformedURLException {
-
-        Assert.assertTrue(IntStream.range(0, expectedValue.size()).allMatch(i -> {
-            try {
-                return expectedValue.get(i).toURI().equals(value.get(i).toURI());
-            } catch (URISyntaxException e) {
-                e.printStackTrace();
-            }
-            return false;
-        }));
-    }
+    /*
+     * URL tests cast to URI before asserting equality.
+     * 
+     * See https://github.com/eclipse/microprofile-config/issues/549 for the reason why.
+     */
 
     @Test
     public void testUrlArrayLookupProgrammatically() throws MalformedURLException, URISyntaxException {
@@ -1863,6 +1853,36 @@ public class ArrayConverterTest extends Arquillian {
         Assert.assertEquals(converterBean.getMySingleUrlList(), expectedSingleValue);
     }
 
+    @Test
+    public void testURLSetInjection() throws MalformedURLException, URISyntaxException {
+        Set<URL> values = converterBean.getMyUrlSet();
+        Assert.assertEquals(values.size(), 2);
+        Set<URL> expectedURLSet = new LinkedHashSet<>(Arrays.asList(
+                new URL("http://openliberty.io"),
+                new URL("http://microprofile.io")));
+        Assert.assertTrue(assertURLSetEquals(values, expectedURLSet));
+
+        Assert.assertEquals(converterBean.getMySingleUrlSet().size(), 1);
+        Set<URL> expectedSingleUrlSet = Collections.singleton(new URL("http://microprofile.io"));
+        Assert.assertTrue(assertURLSetEquals(converterBean.getMySingleUrlSet(), expectedSingleUrlSet));
+    }
+
+    private void assertURLArrayEquals(URL[] value, URL[] expectedValue) throws MalformedURLException {
+        assertURLListEquals(Arrays.asList(value), Arrays.asList(expectedValue));
+    }
+
+    private void assertURLListEquals(List<URL> value, List<URL> expectedValue) throws MalformedURLException {
+
+        Assert.assertTrue(IntStream.range(0, expectedValue.size()).allMatch(i -> {
+            try {
+                return expectedValue.get(i).toURI().equals(value.get(i).toURI());
+            } catch (URISyntaxException e) {
+                e.printStackTrace();
+            }
+            return false;
+        }));
+    }
+
     private boolean assertURLSetEquals(Set<URL> valueSet, Set<URL> expectedURLSet)
             throws MalformedURLException, URISyntaxException {
         if (valueSet.size() != expectedURLSet.size()) {
@@ -1885,20 +1905,6 @@ public class ArrayConverterTest extends Arquillian {
             }
         }
         return isEquals;
-
-    }
-    @Test
-    public void testURLSetInjection() throws MalformedURLException, URISyntaxException {
-        Set<URL> values = converterBean.getMyUrlSet();
-        Assert.assertEquals(values.size(), 2);
-        Set<URL> expectedURLSet = new LinkedHashSet<>(Arrays.asList(
-                new URL("http://openliberty.io"),
-                new URL("http://microprofile.io")));
-        Assert.assertTrue(assertURLSetEquals(values, expectedURLSet));
-
-        Assert.assertEquals(converterBean.getMySingleUrlSet().size(), 1);
-        Set<URL> expectedSingleUrlSet = Collections.singleton(new URL("http://microprofile.io"));
-        Assert.assertTrue(assertURLSetEquals(converterBean.getMySingleUrlSet(), expectedSingleUrlSet));
     }
 
     /////////////////////////////////// Test URI[] //////////////////////////
